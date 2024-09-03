@@ -1,0 +1,79 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Pessoa {
+  nome            String        @unique
+  data_nascimento String?
+  cidade          String?
+  data_matricula  String?
+  n_quarto        String?
+  quarto          Quarto?       @relation(fields: [n_quarto], references: [nome])
+  morador         Boolean       @default(true)
+  saida           String?
+  Compra          Compra[]
+  Mensalidade     Mensalidade[]
+  Pagamento       Pagamento[]
+}
+
+model Conta {
+  id          Int           @id @default(autoincrement())
+  data        DateTime      @default(now())
+  c_agua      Float
+  c_eletrica  Float
+  c_internet  Float
+  IPTU        Float
+  outros      Float
+  Mensalidade Mensalidade[]
+  Compra      Compra[]
+  Pagamento   Pagamento[]
+}
+
+model Pagamento {
+  id            Int          @id @default(autoincrement())
+  morador       Pessoa       @relation(fields: [pagante], references: [nome])
+  pagante       String
+  valor         Float
+  caixa         Float
+  id_conta      Int
+  conta         Conta        @relation(fields: [id_conta], references: [id])
+}
+
+model Compra {
+  id           Int      @id @default(autoincrement())
+  pagante      Pessoa   @relation(fields: [nome_pagante], references: [nome])
+  nome_pagante String
+  valor        Float
+  produto      String
+  id_conta     Int
+  conta        Conta    @relation(fields: [id_conta], references: [id])
+  data         DateTime @default(now())
+}
+
+model Mensalidade {
+  id           Int         @id @default(autoincrement())
+  morador      Pessoa      @relation(fields: [nome_morador], references: [nome])
+  nome_morador String
+  conta        Conta       @relation(fields: [id_conta], references: [id])
+  id_conta     Int
+  valor        Float
+  caixa        Float
+}
+
+model Quarto {
+  id     Int      @id @default(autoincrement())
+  valor  Float
+  nome   String   @unique
+  Pessoa Pessoa[]
+}
